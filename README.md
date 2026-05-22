@@ -6,7 +6,7 @@ A resource calculator for planning your T12 troop research upgrades in Whiteout 
 
 ## Getting Started
 
-[Link to the calculator](https://s-dev-account.github.io/t12-calculator/)
+[Link to the calculator](https://s-dev-account.github.io/t12-calculator-test/)
 
 ---
 
