@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T12 Troops Calculator – Whiteout Survival</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #0d1b2a; color: #e0e8f0; min-height: 100vh; padding: 16px; }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { text-align: center; color: #7ecbff; font-size: 1.4em; margin-bottom: 4px; letter-spacing: 1px; }
+  .subtitle { text-align: center; color: #7a9bb5; font-size: 0.78em; margin-bottom: 18px; }
+  .section-title { color: #9ab8d0; font-size: 0.75em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 6px; }
+  .divider { border-top: 1px solid #1e3a55; margin: 12px 0; }
+  .note { font-size: 0.72em; color: #6a8a9a; margin-top: 6px; }
+  .max-badge { font-size: 0.68em; color: #6a8a9a; font-weight: normal; }
+
+  .accordion { margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 2px solid #1e3a55; }
+  .accordion.enabled { border-color: #2e5a8a; }
+  .acc-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #162233; cursor: pointer; user-select: none; transition: background 0.2s; }
+  .acc-header:hover { background: #1a2d44; }
+  .acc-left { display: flex; align-items: center; gap: 10px; }
+  .acc-icon { font-size: 1.5em; }
+  .acc-label { font-size: 1em; font-weight: bold; color: #7ecbff; }
+  .acc-right { display: flex; align-items: center; gap: 10px; }
+  .toggle-wrap { display: flex; align-items: center; gap: 6px; }
+  .toggle-label { font-size: 0.72em; color: #7a9bb5; }
+  .toggle { position: relative; width: 36px; height: 20px; background: #1e3a55; border-radius: 10px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: #2e7acc; }
+  .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; background: #7a9bb5; border-radius: 50%; transition: all 0.2s; }
+  .toggle.on::after { left: 19px; background: #fff; }
+  .chevron { font-size: 0.85em; color: #7a9bb5; transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+  .acc-body { background: #0f1f30; padding: 14px 16px; display: none; }
+  .acc-body.open { display: block; }
+  .acc-body.disabled-body { opacity: 0.4; pointer-events: none; }
+
+  .gear-table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  .gear-table th { color: #7a9bb5; font-weight: bold; padding: 6px 8px; text-align: left; border-bottom: 1px solid #1e3a55; }
+  .gear-table th.center, .gear-table td.center { text-align: center; }
+  .gear-table td { padding: 6px 8px; border-bottom: 1px solid #162233; vertical-align: middle; }
+  .gear-table tr:last-child td { border-bottom: none; }
+  .gear-icon { font-size: 1.0em; margin-right: 5px; }
+
+  select.num-input {
+    background: #0d1b2a; border: 1px solid #2e5070;
+    border-radius: 4px; color: #e0e8f0; padding: 5px 6px;
+    font-size: 0.9em; text-align: center;
+    -webkit-appearance: none; appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a9bb5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+  select.num-input:focus { outline: none; border-color: #7ecbff; }
+  select.num-input.invalid { border: 2px solid #ff5555 !important; background-color: #2a0d0d !important; }
+  .gear-table select.num-input { width: 70px; }
+
+  .skill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .skill-item { display: flex; flex-direction: column; gap: 3px; }
+  .skill-item label { font-size: 0.78em; color: #9ab8d0; }
+  .skill-item select.num-input { width: 100%; }
+
+  .calc-btn-wrap { text-align: center; margin: 6px 0 2px; }
+  .calc-btn { background: linear-gradient(135deg, #1a5a9a, #0f3560); color: #c8e8ff; border: 2px solid #2e7acc; border-radius: 8px; padding: 13px 48px; cursor: pointer; font-size: 1.05em; font-weight: bold; letter-spacing: 1px; transition: all 0.2s; box-shadow: 0 0 14px rgba(46,122,204,0.35); }
+  .calc-btn:hover { background: linear-gradient(135deg, #2a6aaa, #1a4570); box-shadow: 0 0 22px rgba(46,122,204,0.55); }
+  .calc-btn:active { transform: scale(0.97); }
+
+  .warning { color: #ffb347; font-size: 0.82em; margin-top: 6px; }
+  .results-card { background: #162233; border: 2px solid #2e5a8a; border-radius: 10px; padding: 14px 16px; margin-top: 14px; display: none; }
+  .results-card.visible { display: block; }
+  .results-card h2 { color: #7ecbff; font-size: 0.95em; margin-bottom: 10px; border-bottom: 1px solid #1e3a55; padding-bottom: 6px; }
+  .res-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .res-item { background: #0d1b2a; border: 1px solid #1e3a55; border-radius: 8px; padding: 10px 12px; }
+  .res-label { font-size: 0.7em; color: #7a9bb5; margin-bottom: 3px; }
+  .res-val { font-size: 1.08em; font-weight: bold; }
+  .green { color: #4fd17a; } .blue { color: #7ecbff; } .orange { color: #f0c060; } .red { color: #ff7b7b; } .white { color: #e0e8f0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>⚔️ T12 Troops Calculator</h1>
+<div class="subtitle">Whiteout Survival · Based on Torxim (684) research data</div>
+
+<!-- How to Use -->
+<div style="margin-bottom:14px; border-radius:10px; overflow:hidden; border:1px solid #1e3a55;">
+  <div class="acc-header" onclick="toggleGuide()" style="padding:12px 14px;">
+    <div class="acc-left">
+      <span class="acc-icon">📖</span>
+      <span class="acc-label">How to Use</span>
+    </div>
+    <span class="chevron" id="guide-chevron">▼</span>
+  </div>
+  <div id="guide-body" style="display:none; padding:14px 16px; background:#0f1f30;">
+
+    <div class="section-title">1 · Select Your Troop Types</div>
+    <p style="font-size:0.82em; color:#c0d8e8; line-height:1.6; margin-bottom:6px;">Three sections are shown — <strong>Infantry</strong> 🛡️, <strong>Lancer</strong> 🐴 and <strong>Marksman</strong> 🏹.</p>
+    <ul style="font-size:0.8em; color:#9ab8d0; line-height:1.8; padding-left:16px;">
+      <li>Toggle the <strong>Include</strong> switch on each section to include or exclude that troop type from the calculation</li>
+      <li>Click the section header to collapse or expand it</li>
+    </ul>
+
+    <div class="divider"></div>
+    <div class="section-title">2 · Fill In Your Levels</div>
+    <p style="font-size:0.82em; color:#c0d8e8; line-height:1.6; margin-bottom:6px;">Inside each troop section, set your <strong>Current Level</strong> and <strong>Target Level</strong> for each row using the dropdowns:</p>
+    <ul style="font-size:0.8em; color:#9ab8d0; line-height:1.8; padding-left:16px; margin-bottom:6px;">
+      <li>Gear — Head (max 5)</li>
+      <li>Gear — Shoulder (max 5)</li>
+      <li>Gear — Body (max 5)</li>
+      <li>Gear — Feet (max 5)</li>
+      <li>Gear — Weapon (max 5)</li>
+      <li>Skills I — Atk / Lethality / Health / Defense (max 20)</li>
+      <li>Troop Skill (max 3)</li>
+      <li>Skills II — Atk / Lethality / Health / Defense (max 50)</li>
+      <li>Solar Supremacy (max 15)</li>
+      <li>Skills III — Atk / Lethality / Health / Defense (max 50)</li>
+    </ul>
+    <p style="font-size:0.82em; color:#c0d8e8; line-height:1.6;">Leave both at 0 for anything you are not upgrading.</p>
+
+    <div class="divider"></div>
+    <div class="section-title">3 · Calculate</div>
+    <p style="font-size:0.82em; color:#c0d8e8; line-height:1.6;">Hit <strong>⚡ Calculate Resources</strong> at the bottom. Results show the total Steel, Refined FC, FC Shards, Meat/Wood, Coal, Iron, and Research Time needed across all included troop types.</p>
+
+    <div class="divider"></div>
+    <div class="section-title">📝 Notes</div>
+    <ul style="font-size:0.8em; color:#9ab8d0; line-height:1.8; padding-left:16px;">
+      <li>Each gear piece is tracked and costed independently</li>
+      <li>Skills I, II and III costs cover all 4 combat skills (Atk, Lethality, HP, Defense)</li>
+    </ul>
+  </div>
+</div>
+
+<div id="accordions"></div>
+<div class="calc-btn-wrap">
+  <button class="calc-btn" id="calc-btn" onclick="calc()">⚡ Calculate Resources</button>
+</div>
+<div id="warn-msg" class="warning" style="text-align:center; display:none;"></div>
+<div class="results-card" id="results-card">
+  <h2>💰 Total Resources Needed</h2>
+  <div class="res-grid">
+    <div class="res-item"><div class="res-label">🔩 Steel</div><div class="res-val green" id="r-steel">—</div></div>
+    <div class="res-item"><div class="res-label">🔷 Refined FC</div><div class="res-val blue" id="r-rfc">—</div></div>
+    <div class="res-item"><div class="res-label">💎 FC Shards</div><div class="res-val blue" id="r-shrd">—</div></div>
+    <div class="res-item"><div class="res-label">🥩 Meat / Wood</div><div class="res-val orange" id="r-meat">—</div></div>
+    <div class="res-item"><div class="res-label">🪨 Coal</div><div class="res-val white" id="r-coal">—</div></div>
+    <div class="res-item"><div class="res-label">⛏️ Iron</div><div class="res-val white" id="r-iron">—</div></div>
+    <div class="res-item"><div class="res-label">⏱️ Research Time</div><div class="res-val red" id="r-time">—</div></div>
+    <div class="res-item"><div class="res-label">🪖 Included Types</div><div class="res-val white" id="r-types">—</div></div>
+  </div>
+  <div class="note" style="margin-top:10px">Skills I / II / III include all 4 combat skills (Atk, Lethality, HP, Defense) per troop type.</div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const headGear = [
+  {steel:40000,rfc:10,shrd:70},{steel:60000,rfc:15,shrd:105},
+  {steel:80000,rfc:20,shrd:140},{steel:100000,rfc:25,shrd:175},{steel:120000,rfc:30,shrd:210},
+];
+const bodyGear = [
+  {steel:36000, rfc:10, shrd:70},
+  {steel:36000, rfc:10, shrd:70},
+  {steel:54000, rfc:15, shrd:105},
+  {steel:72000, rfc:20, shrd:140},
+  {steel:108000,rfc:30, shrd:210},
+];
+const skill1Data = [
+  {steel:15000,rfc:2,shrd:16,meat:500000,coal:100000,iron:25000,time:0.4167},
+  {steel:15750,rfc:2,shrd:17,meat:520000,coal:100000,iron:26000,time:0.4375},
+  {steel:16500,rfc:2,shrd:17,meat:550000,coal:110000,iron:27000,time:0.4583},
+  {steel:17250,rfc:2,shrd:18,meat:570000,coal:110000,iron:28000,time:0.4792},
+  {steel:18000,rfc:3,shrd:19,meat:600000,coal:120000,iron:30000,time:0.5},
+  {steel:18750,rfc:3,shrd:20,meat:620000,coal:120000,iron:31000,time:0.5208},
+  {steel:19500,rfc:3,shrd:21,meat:650000,coal:130000,iron:32000,time:0.5417},
+  {steel:21000,rfc:3,shrd:22,meat:700000,coal:140000,iron:35000,time:0.5833},
+  {steel:22500,rfc:3,shrd:24,meat:750000,coal:150000,iron:37000,time:0.625},
+  {steel:24000,rfc:4,shrd:26,meat:800000,coal:160000,iron:40000,time:0.6667},
+  {steel:25500,rfc:4,shrd:27,meat:850000,coal:170000,iron:42000,time:0.7083},
+  {steel:27000,rfc:4,shrd:29,meat:900000,coal:180000,iron:45000,time:0.75},
+  {steel:28500,rfc:4,shrd:30,meat:950000,coal:190000,iron:47000,time:0.7917},
+  {steel:30000,rfc:5,shrd:32,meat:1000000,coal:200000,iron:50000,time:0.8333},
+  {steel:31500,rfc:5,shrd:34,meat:1000000,coal:210000,iron:52000,time:0.875},
+  {steel:33000,rfc:5,shrd:35,meat:1100000,coal:220000,iron:55000,time:0.9167},
+  {steel:34500,rfc:5,shrd:37,meat:1100000,coal:230000,iron:57000,time:0.9583},
+  {steel:36000,rfc:6,shrd:39,meat:1200000,coal:240000,iron:60000,time:1.0},
+  {steel:37500,rfc:6,shrd:40,meat:1200000,coal:250000,iron:62000,time:1.0417},
+  {steel:39000,rfc:6,shrd:42,meat:1300000,coal:260000,iron:65000,time:1.0833},
+];
+const troopSkillData = [
+  {steel:200000,rfc:50,shrd:325,meat:15000000,coal:3000000,iron:750000,time:20},
+  {steel:200000,rfc:50,shrd:325,meat:15000000,coal:3000000,iron:750000,time:20},
+  {steel:200000,rfc:50,shrd:325,meat:15000000,coal:3000000,iron:750000,time:20},
+];
+function getSkill2Row(lvl){return [{steel:18000,rfc:5,shrd:75,meat:500000,coal:100000,iron:25000,time:0.5},{steel:22500,rfc:6,shrd:93,meat:620000,coal:120000,iron:31000,time:0.625},{steel:27000,rfc:7,shrd:112,meat:750000,coal:150000,iron:37000,time:0.75},{steel:31500,rfc:8,shrd:131,meat:870000,coal:170000,iron:43000,time:0.875},{steel:36000,rfc:10,shrd:150,meat:1000000,coal:200000,iron:50000,time:1.0}][Math.min(Math.ceil(lvl/10)-1,4)];}
+const solarData=[{steel:25000,rfc:5,shrd:75,meat:500000,coal:100000,iron:25000,time:0.5},{steel:26250,rfc:5,shrd:78,meat:520000,coal:100000,iron:26000,time:0.525},{steel:27500,rfc:5,shrd:82,meat:550000,coal:110000,iron:27000,time:0.55},{steel:30000,rfc:6,shrd:90,meat:600000,coal:120000,iron:30000,time:0.6},{steel:32500,rfc:6,shrd:97,meat:650000,coal:130000,iron:32000,time:0.65},{steel:35000,rfc:7,shrd:105,meat:700000,coal:140000,iron:35000,time:0.7},{steel:37500,rfc:7,shrd:112,meat:750000,coal:150000,iron:37000,time:0.75},{steel:40000,rfc:8,shrd:120,meat:800000,coal:160000,iron:40000,time:0.8},{steel:42500,rfc:8,shrd:127,meat:850000,coal:170000,iron:42000,time:0.85},{steel:45000,rfc:9,shrd:135,meat:900000,coal:180000,iron:45000,time:0.9},{steel:47500,rfc:9,shrd:142,meat:950000,coal:190000,iron:47000,time:0.95},{steel:50000,rfc:10,shrd:150,meat:1000000,coal:200000,iron:50000,time:1.0},{steel:52500,rfc:10,shrd:157,meat:1000000,coal:210000,iron:52000,time:1.05},{steel:57500,rfc:11,shrd:172,meat:1100000,coal:230000,iron:57000,time:1.15},{steel:62500,rfc:12,shrd:187,meat:1200000,coal:250000,iron:62000,time:1.25}];
+function getSkill3Row(lvl){return [{steel:25000,rfc:5,shrd:125,meat:1000000,coal:200000,iron:50000,time:2.0},{steel:31250,rfc:6,shrd:156,meat:1200000,coal:250000,iron:62000,time:2.5},{steel:37500,rfc:7,shrd:187,meat:1500000,coal:300000,iron:75000,time:3.0},{steel:43750,rfc:8,shrd:218,meat:1700000,coal:350000,iron:87000,time:3.5},{steel:50000,rfc:10,shrd:250,meat:2000000,coal:400000,iron:100000,time:4.0}][Math.min(Math.ceil(lvl/10)-1,4)];}
+
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const TROOPS = [
+  {id:'infantry',label:'Infantry',icon:'🛡️'},
+  {id:'lancer',  label:'Lancer',  icon:'🐴'},
+  {id:'marksman',label:'Marksman',icon:'🏹'},
+];
+// field key -> max value
+const FIELD_MAX = {
+  'g-head-cur':5,'g-head-tgt':5,
+  'g-shoulder-cur':5,'g-shoulder-tgt':5,
+  'g-body-cur':5,'g-body-tgt':5,
+  'g-feet-cur':5,'g-feet-tgt':5,
+  'g-weapon-cur':5,'g-weapon-tgt':5,
+  'skill1-cur':20,'skill1-tgt':20,
+  'troopskill-cur':3,'troopskill-tgt':3,
+  'skill2-cur':50,'skill2-tgt':50,
+  'solar-cur':15,'solar-tgt':15,
+  'skill3-cur':50,'skill3-tgt':50,
+};
+// pairs for cross-validation (target >= current)
+const FIELD_PAIRS = [
+  ['g-head-cur','g-head-tgt'],
+  ['g-shoulder-cur','g-shoulder-tgt'],
+  ['g-body-cur','g-body-tgt'],
+  ['g-feet-cur','g-feet-tgt'],
+  ['g-weapon-cur','g-weapon-tgt'],
+  ['skill1-cur','skill1-tgt'],
+  ['troopskill-cur','troopskill-tgt'],
+  ['skill2-cur','skill2-tgt'],
+  ['solar-cur','solar-tgt'],
+  ['skill3-cur','skill3-tgt'],
+];
+
+const state = {infantry:{open:true,enabled:true},lancer:{open:true,enabled:true},marksman:{open:true,enabled:true}};
+
+// ── BUILD UI ─────────────────────────────────────────────────────────────────
+function inp(id, max) {
+  let opts = '';
+  for (let i = 0; i <= max; i++) opts += `<option value="${i}">${i}</option>`;
+  return `<select class="num-input" id="${id}">${opts}</select>`;
+}
+function panelHTML(tid) {
+  const p = tid+'-';
+  return `
+    <div class="section-title">🎽 Gear <span class="max-badge">(max 5)</span></div>
+    <table class="gear-table">
+      <thead><tr><th>Piece</th><th class="center">Current Lv</th><th class="center">Target Lv</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="gear-icon">🪖</span>Head</td>
+          <td class="center">${inp(p+'g-head-cur',5)}</td>
+          <td class="center">${inp(p+'g-head-tgt',5)}</td>
+        </tr>
+        <tr>
+          <td><span class="gear-icon">🫱</span>Shoulder</td>
+          <td class="center">${inp(p+'g-shoulder-cur',5)}</td>
+          <td class="center">${inp(p+'g-shoulder-tgt',5)}</td>
+        </tr>
+        <tr>
+          <td><span class="gear-icon">🧥</span>Body</td>
+          <td class="center">${inp(p+'g-body-cur',5)}</td>
+          <td class="center">${inp(p+'g-body-tgt',5)}</td>
+        </tr>
+        <tr>
+          <td><span class="gear-icon">👢</span>Feet</td>
+          <td class="center">${inp(p+'g-feet-cur',5)}</td>
+          <td class="center">${inp(p+'g-feet-tgt',5)}</td>
+        </tr>
+        <tr>
+          <td><span class="gear-icon">⚔️</span>Weapon</td>
+          <td class="center">${inp(p+'g-weapon-cur',5)}</td>
+          <td class="center">${inp(p+'g-weapon-tgt',5)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="divider"></div>
+    <div class="section-title">Skills I — Atk / Lethality / HP / Defense <span class="max-badge">(max 20)</span></div>
+    <div class="skill-grid">
+      <div class="skill-item"><label>Current Level</label>${inp(p+'skill1-cur',20)}</div>
+      <div class="skill-item"><label>Target Level</label>${inp(p+'skill1-tgt',20)}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-title">Troop Skill <span class="max-badge">(max 3)</span></div>
+    <div class="skill-grid">
+      <div class="skill-item"><label>Current Level</label>${inp(p+'troopskill-cur',3)}</div>
+      <div class="skill-item"><label>Target Level</label>${inp(p+'troopskill-tgt',3)}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-title">Skills II — Atk / Lethality / HP / Defense <span class="max-badge">(max 50)</span></div>
+    <div class="skill-grid">
+      <div class="skill-item"><label>Current Level</label>${inp(p+'skill2-cur',50)}</div>
+      <div class="skill-item"><label>Target Level</label>${inp(p+'skill2-tgt',50)}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-title">Solar Supremacy <span class="max-badge">(max 15)</span></div>
+    <div class="skill-grid">
+      <div class="skill-item"><label>Current Level</label>${inp(p+'solar-cur',15)}</div>
+      <div class="skill-item"><label>Target Level</label>${inp(p+'solar-tgt',15)}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-title">Skills III — Atk / Lethality / HP / Defense <span class="max-badge">(max 50)</span></div>
+    <div class="skill-grid">
+      <div class="skill-item"><label>Current Level</label>${inp(p+'skill3-cur',50)}</div>
+      <div class="skill-item"><label>Target Level</label>${inp(p+'skill3-tgt',50)}</div>
+    </div>`;
+}
+
+function buildAccordions() {
+  document.getElementById('accordions').innerHTML = TROOPS.map(t => {
+    const s = state[t.id];
+    return `
+    <div class="accordion enabled" id="acc-${t.id}">
+      <div class="acc-header" onclick="toggleOpen('${t.id}')">
+        <div class="acc-left">
+          <span class="acc-icon">${t.icon}</span>
+          <span class="acc-label">${t.label}</span>
+        </div>
+        <div class="acc-right">
+          <div class="toggle-wrap" onclick="event.stopPropagation(); toggleEnabled('${t.id}')">
+            <span class="toggle-label">Include</span>
+            <div class="toggle on" id="toggle-${t.id}"></div>
+          </div>
+          <span class="chevron open" id="chevron-${t.id}">▼</span>
+        </div>
+      </div>
+      <div class="acc-body open" id="body-${t.id}">${panelHTML(t.id)}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleOpen(id) {
+  state[id].open = !state[id].open;
+  document.getElementById('body-'+id).classList.toggle('open', state[id].open);
+  document.getElementById('chevron-'+id).classList.toggle('open', state[id].open);
+}
+function toggleEnabled(id) {
+  state[id].enabled = !state[id].enabled;
+  document.getElementById('toggle-'+id).classList.toggle('on', state[id].enabled);
+  document.getElementById('acc-'+id).classList.toggle('enabled', state[id].enabled);
+  document.getElementById('body-'+id).classList.toggle('disabled-body', !state[id].enabled);
+}
+
+// ── LIVE VALIDATION ──────────────────────────────────────────────────────────
+// Selects fire 'change' reliably on all platforms including mobile
+document.addEventListener('change', function(e) {
+  if (!e.target.classList.contains('num-input')) return;
+  liveValidate();
+});
+
+function liveValidate() {
+  document.querySelectorAll('select.num-input.invalid').forEach(el => el.classList.remove('invalid'));
+  let hasErrors = false;
+  TROOPS.filter(t => state[t.id].enabled).forEach(t => {
+    FIELD_PAIRS.forEach(([curKey, tgtKey]) => {
+      const cEl = document.getElementById(t.id+'-'+curKey);
+      const tEl = document.getElementById(t.id+'-'+tgtKey);
+      if (!cEl || !tEl) return;
+      if ((parseInt(tEl.value) || 0) < (parseInt(cEl.value) || 0)) {
+        tEl.classList.add('invalid');
+        hasErrors = true;
+      }
+    });
+  });
+  const btn = document.getElementById('calc-btn');
+  btn.disabled = hasErrors;
+  btn.style.opacity = hasErrors ? '0.4' : '1';
+  btn.style.cursor  = hasErrors ? 'not-allowed' : 'pointer';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,isNaN(v)?mn:v));}
+function gv(id){const el=document.getElementById(id);return clamp(parseInt((el||{}).value)||0,0,9999);}
+function sumArr(arr,from,to){let s={steel:0,rfc:0,shrd:0,meat:0,coal:0,iron:0,time:0};for(let i=from;i<to;i++){const d=arr[i];s.steel+=d.steel||0;s.rfc+=d.rfc||0;s.shrd+=d.shrd||0;s.meat+=d.meat||0;s.coal+=d.coal||0;s.iron+=d.iron||0;s.time+=d.time||0;}return s;}
+function sumFn(fn,from,to){let s={steel:0,rfc:0,shrd:0,meat:0,coal:0,iron:0,time:0};for(let i=from+1;i<=to;i++){const d=fn(i);s.steel+=d.steel;s.rfc+=d.rfc;s.shrd+=d.shrd;s.meat+=d.meat;s.coal+=d.coal;s.iron+=d.iron;s.time+=d.time;}return s;}
+function addTo(tot,s,mult=1){tot.steel+=s.steel*mult;tot.rfc+=s.rfc*mult;tot.shrd+=s.shrd*mult;tot.meat+=s.meat*mult;tot.coal+=s.coal*mult;tot.iron+=s.iron*mult;tot.time+=s.time*mult;}
+function fmt(n){if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return Math.round(n).toString();}
+
+// ── CALC PER TROOP ────────────────────────────────────────────────────────────
+function calcTroop(id, tot) {
+  const p = id+'-';
+  const hC=clamp(gv(p+'g-head-cur'),0,5),     hT=clamp(gv(p+'g-head-tgt'),0,5);
+  const shC=clamp(gv(p+'g-shoulder-cur'),0,5), shT=clamp(gv(p+'g-shoulder-tgt'),0,5);
+  const bC=clamp(gv(p+'g-body-cur'),0,5),      bT=clamp(gv(p+'g-body-tgt'),0,5);
+  const fC=clamp(gv(p+'g-feet-cur'),0,5),      fT=clamp(gv(p+'g-feet-tgt'),0,5);
+  const wC=clamp(gv(p+'g-weapon-cur'),0,5),    wT=clamp(gv(p+'g-weapon-tgt'),0,5);
+  if(hT>hC)   addTo(tot,sumArr(headGear,hC,hT));
+  if(shT>shC) addTo(tot,sumArr(bodyGear,shC,shT));
+  if(bT>bC)   addTo(tot,sumArr(bodyGear,bC,bT));
+  if(fT>fC)   addTo(tot,sumArr(bodyGear,fC,fT));
+  if(wT>wC)   addTo(tot,sumArr(bodyGear,wC,wT));
+  const s1c=clamp(gv(p+'skill1-cur'),0,20), s1t=clamp(gv(p+'skill1-tgt'),0,20);
+  if(s1t>s1c) addTo(tot,sumArr(skill1Data,s1c,s1t),4);
+  const tsc=clamp(gv(p+'troopskill-cur'),0,3), tst=clamp(gv(p+'troopskill-tgt'),0,3);
+  if(tst>tsc) addTo(tot,sumArr(troopSkillData,tsc,tst));
+  const s2c=clamp(gv(p+'skill2-cur'),0,50), s2t=clamp(gv(p+'skill2-tgt'),0,50);
+  if(s2t>s2c) addTo(tot,sumFn(getSkill2Row,s2c,s2t),4);
+  const sc=clamp(gv(p+'solar-cur'),0,15), st=clamp(gv(p+'solar-tgt'),0,15);
+  if(st>sc) addTo(tot,sumArr(solarData,sc,st));
+  const s3c=clamp(gv(p+'skill3-cur'),0,50), s3t=clamp(gv(p+'skill3-tgt'),0,50);
+  if(s3t>s3c) addTo(tot,sumFn(getSkill3Row,s3c,s3t),4);
+}
+
+// ── MAIN CALC ─────────────────────────────────────────────────────────────────
+function calc() {
+  const warn = document.getElementById('warn-msg');
+  const active = TROOPS.filter(t => state[t.id].enabled);
+  if (!active.length) {
+    warn.style.display='block';
+    warn.textContent='⚠️ Please enable at least one troop type!';
+    return;
+  }
+  warn.style.display='none';
+
+  let tot={steel:0,rfc:0,shrd:0,meat:0,coal:0,iron:0,time:0};
+  active.forEach(t => calcTroop(t.id, tot));
+
+  document.getElementById('r-steel').textContent = Math.round(tot.steel).toLocaleString();
+  document.getElementById('r-rfc').textContent   = Math.round(tot.rfc).toLocaleString();
+  document.getElementById('r-shrd').textContent  = Math.round(tot.shrd).toLocaleString();
+  document.getElementById('r-meat').textContent  = fmt(tot.meat);
+  document.getElementById('r-coal').textContent  = fmt(tot.coal);
+  document.getElementById('r-iron').textContent  = fmt(tot.iron);
+  document.getElementById('r-time').textContent  = tot.time.toFixed(1)+' days';
+  document.getElementById('r-types').textContent = active.map(t=>t.label).join(', ');
+
+  const card = document.getElementById('results-card');
+  card.classList.add('visible');
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── GUIDE TOGGLE ─────────────────────────────────────────────────────────────
+function toggleGuide() {
+  const body = document.getElementById('guide-body');
+  const chevron = document.getElementById('guide-chevron');
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  chevron.classList.toggle('open', open);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildAccordions();
+liveValidate();
+</script>
+</div>
+</body>
+</html>
