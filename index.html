@@ -248,7 +248,7 @@ function makeQS(curIds, tgtIds, max) {
   var tk = regStore(tgtIds);
   var o = '<option value="">&#8212;</option>' + opts(max);
   return '<div class="quick-select">'
-    + '<div class="quick-select-label">Quick Select &mdash; All Troop Types</div>'
+    + '<div class="quick-select-label">Quick Select</div>'
     + '<div class="quick-select-row">'
     + '<div class="quick-select-item"><label>Set All Current</label><select data-key="' + ck + '" onchange="applyQS(this)">' + o + '</select></div>'
     + '<div class="quick-select-item"><label>Set All Target</label><select data-key="' + tk + '" onchange="applyQS(this)">' + o + '</select></div>'
@@ -281,10 +281,10 @@ function panelHTML(tid) {
 
   // SKILLS I
   var s1cur = [], s1tgt = [];
-  TROOPS.forEach(function(t) { SKILLS.forEach(function(sk) {
-    s1cur.push(t.id+'-skill1-'+sk+'-cur');
-    s1tgt.push(t.id+'-skill1-'+sk+'-tgt');
-  }); });
+  SKILLS.forEach(function(sk) {
+    s1cur.push(tid+'-skill1-'+sk+'-cur');
+    s1tgt.push(tid+'-skill1-'+sk+'-tgt');
+  });
   var s1Fields = [];
   SKILLS.forEach(function(sk) { s1Fields.push('skill1-'+sk+'-cur'); s1Fields.push('skill1-'+sk+'-tgt'); });
   h += '<div class="divider"></div>'
@@ -314,10 +314,10 @@ function panelHTML(tid) {
 
   // SKILLS II
   var s2cur = [], s2tgt = [];
-  TROOPS.forEach(function(t) { SKILLS.forEach(function(sk) {
-    s2cur.push(t.id+'-skill2-'+sk+'-cur');
-    s2tgt.push(t.id+'-skill2-'+sk+'-tgt');
-  }); });
+  SKILLS.forEach(function(sk) {
+    s2cur.push(tid+'-skill2-'+sk+'-cur');
+    s2tgt.push(tid+'-skill2-'+sk+'-tgt');
+  });
   var s2Fields = [];
   SKILLS.forEach(function(sk) { s2Fields.push('skill2-'+sk+'-cur'); s2Fields.push('skill2-'+sk+'-tgt'); });
   h += '<div class="divider"></div>'
@@ -347,10 +347,10 @@ function panelHTML(tid) {
 
   // SKILLS III
   var s3cur = [], s3tgt = [];
-  TROOPS.forEach(function(t) { SKILLS.forEach(function(sk) {
-    s3cur.push(t.id+'-skill3-'+sk+'-cur');
-    s3tgt.push(t.id+'-skill3-'+sk+'-tgt');
-  }); });
+  SKILLS.forEach(function(sk) {
+    s3cur.push(tid+'-skill3-'+sk+'-cur');
+    s3tgt.push(tid+'-skill3-'+sk+'-tgt');
+  });
   var s3Fields = [];
   SKILLS.forEach(function(sk) { s3Fields.push('skill3-'+sk+'-cur'); s3Fields.push('skill3-'+sk+'-tgt'); });
   h += '<div class="divider"></div>'
