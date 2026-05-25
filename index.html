@@ -294,7 +294,6 @@ function panelHTML(tid) {
   });
   h += '<div class="section-title-row">'
     + '<div class="section-title">&#127917; Gear <span class="max-badge">(max 5)</span></div>'
-    + makeResetBtn(tid, gearFields)
     + '</div>'
     + makeQS(gearCurIds, gearTgtIds, 5);
   h += '<table class="gear-table"><thead><tr>'
@@ -318,7 +317,6 @@ function panelHTML(tid) {
   h += '<div class="divider"></div>'
     + '<div class="section-title-row">'
     + '<div class="section-title">Skills I <span class="max-badge">(max 20)</span></div>'
-    + makeResetBtn(tid, s1Fields)
     + '</div>'
     + makeQS(s1CurIds, s1TgtIds, 20);
   SKILLS.forEach(function(sk) {
@@ -334,7 +332,6 @@ function panelHTML(tid) {
   h += '<div class="divider"></div>'
     + '<div class="section-title-row">'
     + '<div class="section-title">Troop Skill <span class="max-badge">(max 3)</span></div>'
-    + makeResetBtn(tid, ['troopskill-cur','troopskill-tgt'])
     + '</div>'
     + '<div class="skill-grid">'
     + '<div class="skill-item"><label>Current Level</label>' + numSel(p+'troopskill-cur', 3) + '</div>'
@@ -352,7 +349,6 @@ function panelHTML(tid) {
   h += '<div class="divider"></div>'
     + '<div class="section-title-row">'
     + '<div class="section-title">Skills II <span class="max-badge">(max 50)</span></div>'
-    + makeResetBtn(tid, s2Fields)
     + '</div>'
     + makeQS(s2CurIds, s2TgtIds, 50);
   SKILLS.forEach(function(sk) {
@@ -368,7 +364,6 @@ function panelHTML(tid) {
   h += '<div class="divider"></div>'
     + '<div class="section-title-row">'
     + '<div class="section-title">Solar Supremacy <span class="max-badge">(max 15)</span></div>'
-    + makeResetBtn(tid, ['solar-cur','solar-tgt'])
     + '</div>'
     + '<div class="skill-grid">'
     + '<div class="skill-item"><label>Current Level</label>' + numSel(p+'solar-cur', 15) + '</div>'
@@ -386,7 +381,6 @@ function panelHTML(tid) {
   h += '<div class="divider"></div>'
     + '<div class="section-title-row">'
     + '<div class="section-title">Skills III <span class="max-badge">(max 50)</span></div>'
-    + makeResetBtn(tid, s3Fields)
     + '</div>'
     + makeQS(s3CurIds, s3TgtIds, 50);
   SKILLS.forEach(function(sk) {
@@ -530,6 +524,21 @@ function buildSummary(active) {
   var h = '';
   active.forEach(function(t) {
     var p = t.id + '-';
+
+    // Check if this troop type has any changes at all — skip if not
+    var hasAnyChange = false;
+    GEAR_PIECES.forEach(function(g) {
+      if ((parseInt(document.getElementById(p+g+'-tgt').value)||0) > (parseInt(document.getElementById(p+g+'-cur').value)||0)) hasAnyChange = true;
+    });
+    ['skill1','skill2','skill3'].forEach(function(sk) {
+      SKILLS.forEach(function(s) {
+        if ((parseInt(document.getElementById(p+sk+'-'+s+'-tgt').value)||0) > (parseInt(document.getElementById(p+sk+'-'+s+'-cur').value)||0)) hasAnyChange = true;
+      });
+    });
+    if ((parseInt(document.getElementById(p+'troopskill-tgt').value)||0) > (parseInt(document.getElementById(p+'troopskill-cur').value)||0)) hasAnyChange = true;
+    if ((parseInt(document.getElementById(p+'solar-tgt').value)||0) > (parseInt(document.getElementById(p+'solar-cur').value)||0)) hasAnyChange = true;
+    if (!hasAnyChange) return;
+
     h += '<div class="summary-troop">'
       + '<div class="summary-troop-header"><span>' + t.icon + '</span>' + t.label + '</div>';
 
@@ -540,8 +549,7 @@ function buildSummary(active) {
       var tv = parseInt(document.getElementById(p+g+'-tgt').value)||0;
       if (tv > c) gearTags += '<span class="summary-tag">' + GEAR_LABELS[g] + ' ' + c + '&#8594;' + tv + '</span>';
     });
-    h += '<div class="summary-section"><span class="summary-section-label">Gear</span>'
-      + (gearTags || '<span class="summary-none">no changes</span>') + '</div>';
+    if (gearTags) h += '<div class="summary-section"><span class="summary-section-label">Gear</span>' + gearTags + '</div>';
 
     // Skills I, II, III
     skillSections.forEach(function(sp) {
@@ -551,23 +559,18 @@ function buildSummary(active) {
         var tv = parseInt(document.getElementById(p+sp.key+'-'+sk+'-tgt').value)||0;
         if (tv > c) tags += '<span class="summary-tag">' + SKILL_LABELS[sk] + ' ' + c + '&#8594;' + tv + '</span>';
       });
-      h += '<div class="summary-section"><span class="summary-section-label">' + sp.label + '</span>'
-        + (tags || '<span class="summary-none">no changes</span>') + '</div>';
+      if (tags) h += '<div class="summary-section"><span class="summary-section-label">' + sp.label + '</span>' + tags + '</div>';
     });
 
     // Troop Skill
     var tsc = parseInt(document.getElementById(p+'troopskill-cur').value)||0;
     var tst = parseInt(document.getElementById(p+'troopskill-tgt').value)||0;
-    h += '<div class="summary-section"><span class="summary-section-label">Troop Skill</span>'
-      + (tst > tsc ? '<span class="summary-tag">' + tsc + '&#8594;' + tst + '</span>' : '<span class="summary-none">no changes</span>')
-      + '</div>';
+    if (tst > tsc) h += '<div class="summary-section"><span class="summary-section-label">Troop Skill</span><span class="summary-tag">' + tsc + '&#8594;' + tst + '</span></div>';
 
     // Solar
     var sc = parseInt(document.getElementById(p+'solar-cur').value)||0;
     var st = parseInt(document.getElementById(p+'solar-tgt').value)||0;
-    h += '<div class="summary-section"><span class="summary-section-label">Solar</span>'
-      + (st > sc ? '<span class="summary-tag">' + sc + '&#8594;' + st + '</span>' : '<span class="summary-none">no changes</span>')
-      + '</div>';
+    if (st > sc) h += '<div class="summary-section"><span class="summary-section-label">Solar</span><span class="summary-tag">' + sc + '&#8594;' + st + '</span></div>';
 
     h += '</div>';
   });
