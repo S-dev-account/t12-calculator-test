@@ -483,6 +483,17 @@ function sumArr(arr,from,to){var s={steel:0,rfc:0,shrd:0,meat:0,coal:0,iron:0,ti
 function sumFn(fn,from,to){var s={steel:0,rfc:0,shrd:0,meat:0,coal:0,iron:0,time:0};for(var i=from+1;i<=to;i++){var d=fn(i);s.steel+=d.steel;s.rfc+=d.rfc;s.shrd+=d.shrd;s.meat+=d.meat;s.coal+=d.coal;s.iron+=d.iron;s.time+=d.time;}return s;}
 function addTo(tot,s){tot.steel+=s.steel;tot.rfc+=s.rfc;tot.shrd+=s.shrd;tot.meat+=s.meat;tot.coal+=s.coal;tot.iron+=s.iron;tot.time+=s.time;}
 function fmt(n){if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return Math.round(n).toString();}
+function fmtTime(days) {
+  var totalMins = Math.round(days * 24 * 60);
+  var d = Math.floor(totalMins / (24 * 60));
+  var h = Math.floor((totalMins % (24 * 60)) / 60);
+  var m = totalMins % 60;
+  var parts = [];
+  if (d > 0) parts.push(d + 'd');
+  if (h > 0) parts.push(h + 'h');
+  if (m > 0) parts.push(m + 'm');
+  return parts.length ? parts.join(' ') : '0m';
+}
 
 // ── CALC PER TROOP ────────────────────────────────────────────────────────────
 function calcTroop(tid, tot) {
@@ -578,10 +589,10 @@ function calc() {
   document.getElementById('r-steel').textContent = Math.round(tot.steel).toLocaleString();
   document.getElementById('r-rfc').textContent   = Math.round(tot.rfc).toLocaleString();
   document.getElementById('r-shrd').textContent  = Math.round(tot.shrd).toLocaleString();
-  document.getElementById('r-meat').textContent  = fmt(tot.meat);
-  document.getElementById('r-coal').textContent  = fmt(tot.coal);
-  document.getElementById('r-iron').textContent  = fmt(tot.iron);
-  document.getElementById('r-time').textContent  = tot.time.toFixed(1)+' days';
+  document.getElementById('r-meat').textContent  = Math.round(tot.meat).toLocaleString();
+  document.getElementById('r-coal').textContent  = Math.round(tot.coal).toLocaleString();
+  document.getElementById('r-iron').textContent  = Math.round(tot.iron).toLocaleString();
+  document.getElementById('r-time').textContent  = fmtTime(tot.time);
   document.getElementById('r-types').textContent = active.map(function(t){return t.label;}).join(', ');
   document.getElementById('results-card').classList.add('visible');
   buildSummary(active);
